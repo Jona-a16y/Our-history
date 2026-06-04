@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestra Historia</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            /* Fondo rosa pastel */
+            background-color: #ffb7b2; 
+            color: #333333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Contenedor para los corazones de crayón */
+        .crayon-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .crayon-heart {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            opacity: 0.85;
+            animation: floatUp 7s linear infinite;
+            bottom: -80px;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) scale(0.6) rotate(0deg);
+                opacity: 0;
+            }
+            15% {
+                opacity: 0.85;
+            }
+            100% {
+                transform: translateY(-115vh) scale(1.2) rotate(15deg);
+                opacity: 0;
+            }
+        }
+
+        /* Tarjeta principal */
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 35px 25px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            max-width: 420px;
+            width: 88%;
+            z-index: 10;
+            transition: all 0.4s ease-in-out;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 1.6rem;
+            margin-top: 0;
+            margin-bottom: 35px;
+            line-height: 1.4;
+            color: #d62828;
+        }
+
+        /* Botones */
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            height: 50px;
+            position: relative;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 35px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            outline: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #btn-si {
+            background-color: #e63946;
+            color: white;
+            box-shadow: 0 5px 15px rgba(230, 57, 70, 0.3);
+            transition: transform 0.1s ease;
+        }
+
+        #btn-si:active {
+            transform: scale(0.95);
+        }
+
+        #btn-no {
+            background-color: #6c757d;
+            color: white;
+            position: absolute;
+            transition: all 0.1s ease-out;
+            z-index: 20;
+        }
+
+        /* Bloque del Poema */
+        .poema-scroll {
+            overflow-y: auto;
+            padding-right: 5px;
+            text-align: left;
+        }
+
+        .poema-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .poema-scroll::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        .poema-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            white-space: pre-line;
+            margin: 0;
+            color: #2b2b2b;
+            animation: fadeIn 1.2s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Filtro SVG para simular textura de crayón hecho a mano -->
+    <svg style="display: none;">
+        <defs>
+            <filter id="crayon-texture">
+                <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Fondo de corazones -->
+    <div class="crayon-bg" id="bg-corazones"></div>
+
+    <!-- Contenido principal -->
+    <div class="card" id="contenedor">
+        <h1 id="pregunta">¿Quieres continuar con esta historia?</h1>
+        <div class="btn-container">
+            <button id="btn-si" onclick="mostrarPoema()">Sí</button>
+            <button id="btn-no" onmouseover="moverBoton()" ontouchstart="moverBoton()">No</button>
+        </div>
+    </div>
+
+    <script>
+        // Generador de corazones asimétricos estilo crayón
+        const bg = document.getElementById('bg-corazones');
+        const cantidadCorazones = 15;
+
+        // Código SVG de un corazón imperfecto/asimétrico hecho a mano
+        const svgCorazon = `
+            <svg viewBox="0 0 100 100" style="filter: url(#crayon-texture); width: 100%; height: 100%;">
+                <path d="M 50,30 
+                         C 60,10 95,15 90,45 
+                         C 85,70 55,85 50,95 
+                         C 45,85 15,70 10,45 
+                         C 5,15 40,10 50,30 Z" 
+                      fill="#b7091a" stroke="#900c1c" stroke-width="2" stroke-dasharray="300" />
+            </svg>
+        `;
+
+        for (let i = 0; i < cantidadCorazones; i++) {
+            const heartDiv = document.createElement('div');
+            heartDiv.classList.add('crayon-heart');
+            heartDiv.innerHTML = svgCorazon;
+            
+            // Distribución y tiempos aleatorios
+            heartDiv.style.left = Math.random() * 100 + '%';
+            heartDiv.style.animationDelay = Math.random() * 7 + 's';
+            heartDiv.style.animationDuration = (Math.random() * 3 + 5) + 's';
+            
+            bg.appendChild(heartDiv);
+        }
+
+        // Función para mover el botón "No"
+        function moverBoton() {
+            const btnNo = document.getElementById('btn-no');
+            const padding = 40;
+            
+            const xMax = window.innerWidth - btnNo.offsetWidth - padding;
+            const yMax = window.innerHeight - btnNo.offsetHeight - padding;
+            
+            const xAleatoria = Math.random() * (xMax - padding) + padding;
+            const yAleatoria = Math.random() * (yMax - padding) + padding;
+            
+            btnNo.style.position = 'fixed';
+            btnNo.style.left = xAleatoria + 'px';
+            btnNo.style.top = yAleatoria + 'px';
+        }
+
+        // Función para mostrar tu poema
+        function mostrarPoema() {
+            const contenedor = document.getElementById('contenedor');
+            
+            const poemaOriginal = `"Esta es una pequeña muestra de cuanto te quiero no es suficiente, desde que llegaste a mi vida aun siendo recientemente fuiste la luz que apareció alrededor de toda la oscuridad que me rodea, solo yo y mi teléfono somos testigos de lo feliz que me pongo cuando veo que es un mensaje tuyo, eres lo mejor que me ha pasado, no existe texto suficientemente largo para explicar o describir todo lo que siento por ti, agradezco que ahora formes parte de mi dia a día, lo unico que puedo decir es que te amo mucho amor, espero nunca dudes de mis palabras, Te amo y eso no cambiara"`;
+
+            contenedor.innerHTML = `
+                <div class="poema-scroll">
+                    <p class="poema-text">${poemaOriginal} ❤️</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
